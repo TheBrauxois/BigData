@@ -1,7 +1,8 @@
 library(plyr)
 library(ggplot2)
 library(dplyr)
-dst = read.csv("~/INSA/5\ ISS/BigData/BigData/cardataset/data.csv")
+#dst = read.csv("~/INSA/5\ ISS/BigData/BigData/cardataset/data.csv")
+dst = read.csv("~/Desktop/INSA/5A/BigData/cardataset/data.csv")
 
 dst$Vehicle.Size=factor(dst$Vehicle.Size, levels=c('Compact','Midsize','Large'), ordered=TRUE)
 dst$City.l_100 = 100* 3.785411784 / (1.609344 *dst$city.mpg)
@@ -28,7 +29,8 @@ prix_marque= ddply(dst, .(Make), summarize, price=mean(MSRP), conso_moyenne=mean
 conso_gear= ddply(subset(dst,(dst$Transmission.Type=="MANUAL" | dst$Transmission.Type=="AUTOMATIC") & dst$Engine.HP < 250), 
                   .(Year,Transmission.Type), summarize, conso_moyenne=mean((City.l_100+Highway.l_100)/2))
 ggplot(conso_gear) + 
-  geom_histogram(stat = "identity", position = "identity",  aes(x=factor(Year),y=conso_moyenne, fill=factor(Transmission.Type))) 
+  geom_histogram(stat = "identity", position = "identity",  aes(x=factor(Year),y=conso_moyenne, fill=factor(Transmission.Type))) +
+  scale_fill_brewer(palette = "Set1")
 
 
 
@@ -49,17 +51,23 @@ ggplot(voiture_rec) +
 
 #fuel_type_nmbr = ddply(dst,.(Year,Engine.Fuel.Type),summarise, Nombre = length(Engine.Fuel.Type),Perc = as.double(Nombre)/as.double(sum(Nombre)))
 
-fuel_type_nmbr = ddply(dst,.(Year,Engine.Fuel.Type),summarise, Nombre = length(Engine.Fuel.Type))
+fuel_type_nmbr = ddply(subset(dst,dst$Engine.Fuel.Type != ""),.(Year,Engine.Fuel.Type),summarise, Nombre = length(Engine.Fuel.Type))
+fuel_type_tot= ddply(fuel_type_nmbr,.(Year) ,summarise, Tot = sum(Nombre))
+fuel_type_nmbr = merge(fuel_type_nmbr,fuel_type_tot, by = "Year")
+fuel_type_nmbr = ddply(fuel_type_nmbr,.(Year, Engine.Fuel.Type),summarise, prop = Nombre/Tot)
 #fuelpct=group_by(fuel_type_nmbr, Engine.Fuel.Type, Year) %>% summarise(Pct = Nombre/sum(fuel_type_nmbr$Nombre) * 100)
 ggplot(fuel_type_nmbr) + 
-  barplot(stat = "identity",  aes(x=factor(Year),y=(Nombre), fill=factor(Engine.Fuel.Type))) 
+  geom_bar(stat = "identity",  aes(x=factor(Year),y=(prop), fill=factor(Engine.Fuel.Type))) +
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_brewer(palette = "RdYlBu")
  
 
-`%ni%` = Negate(`%in%`)
+
 #transmission_nmbr = ddply(dst,.(Year,Transmission.Type),summarise, Nombre = (length(Transmission.Type)/length(Year))) 
 #ggplot(transmission_nmbr) + 
  # geom_histogram(stat = "identity", position = "dodge",  aes(x=factor(Year),y=Nombre, fill=factor(Transmission.Type))) 
-not_fuel = c("","Electric","natural gas")
+`%ni%` = Negate(`%in%`)
+not_fuel = c("","electric","natural gas")
 fuel_consumption_per_gas = ddply(subset(non_sportive_cars,non_sportive_cars$Engine.Fuel.Type %ni% not_fuel),.(Engine.Fuel.Type),summarise, Consumption = mean(Mixt.l_100))
 ggplot(fuel_consumption_per_gas) +
   geom_histogram(stat = "identity",  aes(x=factor(Engine.Fuel.Type),y=(Consumption)))
