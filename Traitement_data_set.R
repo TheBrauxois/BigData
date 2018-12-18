@@ -1,7 +1,7 @@
 library(plyr)
 library(ggplot2)
 library(dplyr)
-dst = read.csv("~/INSA/5\ ISS/BigData/cardataset/data.csv")
+dst = read.csv("~/INSA/5\ ISS/BigData/BigData/cardataset/data.csv")
 
 dst$Vehicle.Size=factor(dst$Vehicle.Size, levels=c('Compact','Midsize','Large'), ordered=TRUE)
 dst$City.l_100 = 100* 3.785411784 / (1.609344 *dst$city.mpg)
@@ -47,17 +47,20 @@ ggplot(voiture_rec) +
   geom_boxplot(position="dodge",aes(x = Vehicle.Style , y = Mixt.l_100 , fill=factor(Make, factor_marque, ordered=TRUE)))
 
 
-fuel_type_nmbr = ddply(dst,.(Year,Engine.Fuel.Type),summarise, Nombre = length(Engine.Fuel.Type),Perc = as.double(Nombre)/as.double(sum(Nombre)))
-fuelpct=group_by(fuel_type_nmbr, Engine.Fuel.Type, Year) %>% summarise(Pct = Nombre/sum(fuel_type_nmbr$Nombre) * 100)
+#fuel_type_nmbr = ddply(dst,.(Year,Engine.Fuel.Type),summarise, Nombre = length(Engine.Fuel.Type),Perc = as.double(Nombre)/as.double(sum(Nombre)))
+
+fuel_type_nmbr = ddply(dst,.(Year,Engine.Fuel.Type),summarise, Nombre = length(Engine.Fuel.Type))
+#fuelpct=group_by(fuel_type_nmbr, Engine.Fuel.Type, Year) %>% summarise(Pct = Nombre/sum(fuel_type_nmbr$Nombre) * 100)
 ggplot(fuel_type_nmbr) + 
-  geom_histogram(stat = "identity",  aes(x=factor(Year),y=(Nombre), fill=factor(Engine.Fuel.Type))) 
+  barplot(stat = "identity",  aes(x=factor(Year),y=(Nombre), fill=factor(Engine.Fuel.Type))) 
  
 
+`%ni%` = Negate(`%in%`)
 #transmission_nmbr = ddply(dst,.(Year,Transmission.Type),summarise, Nombre = (length(Transmission.Type)/length(Year))) 
 #ggplot(transmission_nmbr) + 
  # geom_histogram(stat = "identity", position = "dodge",  aes(x=factor(Year),y=Nombre, fill=factor(Transmission.Type))) 
 not_fuel = c("","Electric","natural gas")
-fuel_consumption_per_gas = ddply(subset(non_sportive_cars,non_sportive_cars$Engine.Fuel.Type %not in% not_fuel),.(Engine.Fuel.Type),summarise, Consumption = mean(Mixt.l_100))
+fuel_consumption_per_gas = ddply(subset(non_sportive_cars,non_sportive_cars$Engine.Fuel.Type %ni% not_fuel),.(Engine.Fuel.Type),summarise, Consumption = mean(Mixt.l_100))
 ggplot(fuel_consumption_per_gas) +
   geom_histogram(stat = "identity",  aes(x=factor(Engine.Fuel.Type),y=(Consumption)))
  
