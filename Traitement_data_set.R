@@ -6,7 +6,7 @@
 #
 #   - Master ISS INSA Toulouse
 #
-#
+#     / ! \  Do not forget to set your worspace directory to the source file location / ! \
 #################################################################################################################################
 
 
@@ -16,8 +16,7 @@ library(ggplot2)
 library(dplyr)
 
 # ---------------------------- Reading csv ---------------------------------------
-dst = read.csv("~/INSA/5\ ISS/BigData/BigData/cardataset/data.csv")
-#dst = read.csv("~/Desktop/INSA/5A/BigData/cardataset/data.csv")
+dst = read.csv("cardataset/data.csv")
 
 `%ni%` = Negate(`%in%`)
 
